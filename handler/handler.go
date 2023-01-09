@@ -7,5 +7,10 @@ import (
 
 // UploadHandler 处理上传文件
 func UploadHandler(writer http.ResponseWriter, request *http.Request) {
-	fmt.Println(request.Method)
+	if request.Method == "GET" {
+		fmt.Println(request.Method)
+	} else if request.Method == "POST" {
+		fmt.Println(request.Method)
+
+	}
 }
