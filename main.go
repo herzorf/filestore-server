@@ -1,7 +1,15 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/herzorf/filestroe-server/handler"
+	"net/http"
+)
 
 func main() {
-	fmt.Println(1111)
+	http.HandleFunc("/file/upload", handler.UploadHandler)
+	err := http.ListenAndServe(":8080", nil)
+	if err != nil {
+		fmt.Printf("server start err %s\n", err.Error())
+	}
 }
