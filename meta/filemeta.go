@@ -15,8 +15,8 @@ func init() {
 	FileMetas = make(map[string]FileMeta)
 }
 
-// UploadFileMeta 新增和更新fmeta
-func UploadFileMeta(fmeta FileMeta) {
+// UpdateFileMeta 新增和更新fmeta
+func UpdateFileMeta(fmeta FileMeta) {
 	FileMetas[fmeta.FileSha1] = fmeta
 }
 

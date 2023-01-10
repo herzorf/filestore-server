@@ -2,9 +2,12 @@ package handler
 
 import (
 	"fmt"
+	"github.com/herzorf/filestroe-server/meta"
+	"github.com/herzorf/filestroe-server/util"
 	"io"
 	"net/http"
 	"os"
+	"time"
 )
 
 // UploadHandler 处理上传文件
@@ -30,7 +33,12 @@ func UploadHandler(writer http.ResponseWriter, request *http.Request) {
 				fmt.Println("读取文件关闭错误", err)
 			}
 		}()
-		newFile, err := os.Create("temp/" + header.Filename)
+		fileMeta := meta.FileMeta{
+			FileName: header.Filename,
+			Location: "temp/" + header.Filename,
+			UploadAt: time.Now().Format("2023-01-10 22:09:00"),
+		}
+		newFile, err := os.Create(fileMeta.Location)
 		if err != nil {
 			fmt.Println("文件创建错误", err)
 			return
@@ -41,10 +49,17 @@ func UploadHandler(writer http.ResponseWriter, request *http.Request) {
 				fmt.Println("创建的文件关闭错误", err)
 			}
 		}()
-		_, err = io.Copy(newFile, file)
+		fileMeta.FileSize, err = io.Copy(newFile, file)
 		if err != nil {
 			fmt.Println("文件拷贝错误", err)
 		}
+		_, err = newFile.Seek(0, 0)
+		if err != nil {
+			fmt.Println("file seek 错误", err)
+		}
+		fileMeta.FileSha1 = util.FileSha1(newFile)
+		meta.UpdateFileMeta(fileMeta)
+		fmt.Println(meta.FileMetas)
 		http.Redirect(writer, request, "/file/upload/suc", http.StatusFound)
 	}
 }
