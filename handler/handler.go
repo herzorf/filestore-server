@@ -6,6 +6,7 @@ import (
 	"github.com/herzorf/filestroe-server/meta"
 	"github.com/herzorf/filestroe-server/util"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"time"
@@ -60,7 +61,7 @@ func UploadHandler(writer http.ResponseWriter, request *http.Request) {
 		}
 		fileMeta.FileSha1 = util.FileSha1(newFile)
 		meta.UpdateFileMeta(fileMeta)
-		fmt.Println(meta.FileMetas)
+		fmt.Printf("%+v\n", meta.FileMetas)
 		http.Redirect(writer, request, "/file/upload/suc", http.StatusFound)
 	}
 }
@@ -88,5 +89,36 @@ func GetFileMetaHandler(write http.ResponseWriter, request *http.Request) {
 	_, err = write.Write(marshal)
 	if err != nil {
 		panic(err)
+	}
+}
+
+func DownloadHandler(write http.ResponseWriter, request *http.Request) {
+	err := request.ParseForm()
+	if err != nil {
+		panic(err)
+	}
+	filesha1 := request.Form.Get("filehash")
+	fileMeta := meta.GetFileMeta(filesha1)
+	fmt.Println(fileMeta.Location)
+	file, err := os.Open(fileMeta.Location)
+	if err != nil {
+		log.Printf("文件打开错误%s", err)
+		write.WriteHeader(http.StatusInternalServerError)
+	}
+
+	defer func() {
+		err = file.Close()
+		if err != nil {
+			log.Printf("文件关闭错误%s", err)
+		}
+	}()
+	data, err := io.ReadAll(file)
+	if err != nil {
+		log.Printf("读取文件出错\n")
+		write.WriteHeader(http.StatusInternalServerError)
+	}
+	_, err = write.Write(data)
+	if err != nil {
+		log.Printf("文件返回出错")
 	}
 }
