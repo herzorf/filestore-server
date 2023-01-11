@@ -122,3 +122,38 @@ func DownloadHandler(write http.ResponseWriter, request *http.Request) {
 		log.Printf("文件返回出错")
 	}
 }
+
+func FileMetaUpdateHandler(write http.ResponseWriter, request *http.Request) {
+	err := request.ParseForm()
+	if err != nil {
+		panic(err)
+	}
+	opType := request.Form.Get("op")
+	fileSha1 := request.Form.Get("filehash")
+	newFileName := request.Form.Get("filename")
+
+	if opType != "0" {
+		write.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	if request.Method != "post" {
+		write.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+	fileMeta := meta.GetFileMeta(fileSha1)
+	fileMeta.FileName = newFileName
+	meta.UpdateFileMeta(fileMeta)
+
+	marshal, err := json.Marshal(fileMeta)
+	if err != nil {
+		write.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	write.WriteHeader(http.StatusOK)
+	_, err = write.Write(marshal)
+	if err != nil {
+		write.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
