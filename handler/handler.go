@@ -137,7 +137,7 @@ func FileMetaUpdateHandler(write http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	if request.Method != "post" {
+	if request.Method != "POST" {
 		write.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
@@ -156,4 +156,19 @@ func FileMetaUpdateHandler(write http.ResponseWriter, request *http.Request) {
 		write.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+}
+
+func FileDeleteHandler(write http.ResponseWriter, request *http.Request) {
+	err := request.ParseForm()
+	if err != nil {
+		panic(err)
+	}
+	fileSha1 := request.Form.Get("filehash")
+	fileMeta := meta.GetFileMeta(fileSha1)
+	err = os.Remove(fileMeta.Location)
+	if err != nil {
+		fmt.Println("文件删除错误", err)
+	}
+	meta.RemoveFileMeta(fileSha1)
+	write.WriteHeader(http.StatusOK)
 }
