@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/herzorf/filestroe-server/meta"
 	"github.com/herzorf/filestroe-server/util"
@@ -36,7 +37,7 @@ func UploadHandler(writer http.ResponseWriter, request *http.Request) {
 		fileMeta := meta.FileMeta{
 			FileName: header.Filename,
 			Location: "temp/" + header.Filename,
-			UploadAt: time.Now().Format("2023-01-10 22:09:00"),
+			UploadAt: time.Now().Format("2006-01-11 15:4:5"),
 		}
 		newFile, err := os.Create(fileMeta.Location)
 		if err != nil {
@@ -69,5 +70,23 @@ func UploadSucHandler(w http.ResponseWriter, r *http.Request) {
 	_, err := io.WriteString(w, "upload finished!")
 	if err != nil {
 		fmt.Println("io write err", err)
+	}
+}
+
+func GetFileMetaHandler(write http.ResponseWriter, request *http.Request) {
+	err := request.ParseForm()
+	if err != nil {
+		panic(err)
+	}
+	fileHash := request.Form["filehash"][0]
+	fileMeta := meta.GetFileMeta(fileHash)
+	marshal, err := json.Marshal(fileMeta)
+	if err != nil {
+		write.WriteHeader(http.StatusInternalServerError)
+		panic(err)
+	}
+	_, err = write.Write(marshal)
+	if err != nil {
+		panic(err)
 	}
 }
