@@ -79,7 +79,11 @@ func GetFileMetaHandler(write http.ResponseWriter, request *http.Request) {
 		panic(err)
 	}
 	fileHash := request.Form["filehash"][0]
-	fileMeta := meta.GetFileMeta(fileHash)
+	fileMeta, err := meta.GetFIleMetaDB(fileHash)
+	if err != nil {
+		write.WriteHeader(http.StatusInternalServerError)
+		panic(err)
+	}
 	marshal, err := json.Marshal(fileMeta)
 	if err != nil {
 		write.WriteHeader(http.StatusInternalServerError)
