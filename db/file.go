@@ -7,7 +7,7 @@ import (
 
 // OnfileUpdateFinish 文件上传完成
 func OnfileUpdateFinish(filehash string, fileName string, fileSize int, fileAddr string) bool {
-	prepare, err := mysql.ConnectDB().Prepare("insert ignore into tbl_file ('file_sha1','file_name','file_size','file_addr','status') values (?,?,?,?,1)")
+	prepare, err := mysql.ConnectDB().Prepare("INSERT INTO file (file_sha1,file_name,file_size,file_addr,status) VALUES (?,?,?,?,1)")
 	if err != nil {
 		fmt.Println("prepare err", err)
 		return false

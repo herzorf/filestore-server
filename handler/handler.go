@@ -60,7 +60,7 @@ func UploadHandler(writer http.ResponseWriter, request *http.Request) {
 			fmt.Println("file seek 错误", err)
 		}
 		fileMeta.FileSha1 = util.FileSha1(newFile)
-		meta.UpdateFileMeta(fileMeta)
+		meta.UpdateFileMetaDB(fileMeta)
 		fmt.Printf("%+v\n", meta.FileMetas)
 		http.Redirect(writer, request, "/file/upload/suc", http.StatusFound)
 	}
@@ -143,7 +143,7 @@ func FileMetaUpdateHandler(write http.ResponseWriter, request *http.Request) {
 	}
 	fileMeta := meta.GetFileMeta(fileSha1)
 	fileMeta.FileName = newFileName
-	meta.UpdateFileMeta(fileMeta)
+	meta.UpdateFileMetaDB(fileMeta)
 
 	marshal, err := json.Marshal(fileMeta)
 	if err != nil {
