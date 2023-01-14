@@ -61,7 +61,6 @@ func UploadHandler(writer http.ResponseWriter, request *http.Request) {
 		}
 		fileMeta.FileSha1 = util.FileSha1(newFile)
 		meta.UpdateFileMetaDB(fileMeta)
-		fmt.Printf("%+v\n", meta.FileMetas)
 		http.Redirect(writer, request, "/file/upload/suc", http.StatusFound)
 	}
 }
@@ -99,7 +98,6 @@ func DownloadHandler(write http.ResponseWriter, request *http.Request) {
 	}
 	filesha1 := request.Form.Get("filehash")
 	fileMeta := meta.GetFileMeta(filesha1)
-	fmt.Println(fileMeta.Location)
 	file, err := os.Open(fileMeta.Location)
 	if err != nil {
 		log.Printf("文件打开错误%s", err)
