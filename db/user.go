@@ -27,3 +27,26 @@ func UserSignUp(username string, password string) bool {
 	}
 	return false
 }
+
+func UserSignIn(username string, password string) bool {
+	stmt, err := mysql.ConnectDB().Prepare("SELECT * from user WHERE user_name = ? LIMIT = 1")
+	if err != nil {
+		fmt.Println("prepare err", err)
+		return false
+	}
+	rows, err := stmt.Query(username)
+	if err != nil {
+		fmt.Println("query err", err)
+		return false
+	} else if rows == nil {
+		fmt.Printf("username : %s not found\n", username)
+		return false
+	}
+	fmt.Printf("%+v\n", rows)
+	parseRows := mysql.ParseRows(rows)
+	if len(parseRows) > 0 && string(parseRows[0]["user_pwd"].([]byte)) == password {
+		return true
+	}
+	return false
+
+}

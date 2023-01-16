@@ -54,3 +54,7 @@ func SignUpHandler(write http.ResponseWriter, request *http.Request) {
 		}
 	}
 }
+
+func SignInHandler(write http.ResponseWriter, request *http.Request) {
+
+}
