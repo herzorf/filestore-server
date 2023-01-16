@@ -6,6 +6,7 @@ import (
 	"github.com/herzorf/filestroe-server/util"
 	"net/http"
 	"os"
+	"time"
 )
 
 const pwdSalt = "*#890"
@@ -56,5 +57,55 @@ func SignUpHandler(write http.ResponseWriter, request *http.Request) {
 }
 
 func SignInHandler(write http.ResponseWriter, request *http.Request) {
+	if request.Method == "GET" {
+		file, err := os.ReadFile("./static/view/signin.html")
+		if err != nil {
+			fmt.Println("文件读取错误", err)
+			write.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		_, err = write.Write(file)
+		if err != nil {
+			fmt.Println("write err", err)
+			write.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	} else {
+		err := request.ParseForm()
+		if err != nil {
+			fmt.Println(err)
+			write.WriteHeader(http.StatusInternalServerError)
+		}
+		username := request.Form.Get("username")
+		password := request.Form.Get("password")
 
+		encPassword := util.Sha1([]byte(password + pwdSalt))
+
+		passwordCheck := db.UserSignIn(username, encPassword)
+		if !passwordCheck {
+			_, err := write.Write([]byte("用户名密码错误"))
+			if err != nil {
+				write.WriteHeader(http.StatusInternalServerError)
+			}
+			return
+		}
+		token := GenToken(username)
+		updateToken := db.UpdateToken(username, token)
+		if !updateToken {
+			write.WriteHeader(http.StatusInternalServerError)
+			return
+		} else {
+			_, err = write.Write([]byte(request.Host + "/static/view/home.html"))
+			if err != nil {
+				write.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+		}
+	}
+}
+
+func GenToken(username string) string {
+	ts := fmt.Sprintf("%x", time.Now().Unix())
+	tokenPrefix := util.MD5([]byte(username + ts + "_tokensalt"))
+	return tokenPrefix + ts[:8]
 }

@@ -29,7 +29,7 @@ func UserSignUp(username string, password string) bool {
 }
 
 func UserSignIn(username string, password string) bool {
-	stmt, err := mysql.ConnectDB().Prepare("SELECT * from user WHERE user_name = ? LIMIT = 1")
+	stmt, err := mysql.ConnectDB().Prepare("SELECT * from user WHERE user_name = ? LIMIT 1")
 	if err != nil {
 		fmt.Println("prepare err", err)
 		return false
@@ -42,11 +42,29 @@ func UserSignIn(username string, password string) bool {
 		fmt.Printf("username : %s not found\n", username)
 		return false
 	}
-	fmt.Printf("%+v\n", rows)
 	parseRows := mysql.ParseRows(rows)
 	if len(parseRows) > 0 && string(parseRows[0]["user_pwd"].([]byte)) == password {
 		return true
 	}
 	return false
+}
 
+func UpdateToken(username string, token string) bool {
+	stmt, err := mysql.ConnectDB().Prepare("replace into user_token (user_name,user_token) values (?,?)")
+	if err != nil {
+		fmt.Println("prepare err", err)
+		return false
+	}
+	_, err = stmt.Exec(username, token)
+	if err != nil {
+		fmt.Println("replace err", err)
+		return false
+	}
+	defer func() {
+		err2 := stmt.Close()
+		if err2 != nil {
+			panic(err2)
+		}
+	}()
+	return true
 }

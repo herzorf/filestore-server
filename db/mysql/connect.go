@@ -22,8 +22,6 @@ func ConnectDB() *sql.DB {
 }
 
 func ParseRows(rows *sql.Rows) []map[string]interface{} {
-	strings, _ := rows.Columns()
-	fmt.Println(strings)
 	defer func() {
 		err := rows.Close()
 		if err != nil {
@@ -42,7 +40,10 @@ func ParseRows(rows *sql.Rows) []map[string]interface{} {
 	for rows.Next() {
 		//将行数据保存到record字典
 		err := rows.Scan(scanArgs...)
-		fmt.Println(err)
+		if err != nil {
+			fmt.Println(err)
+			return records
+		}
 
 		for i, col := range values {
 			if col != nil {
