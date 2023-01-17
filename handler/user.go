@@ -95,11 +95,6 @@ func SignInHandler(write http.ResponseWriter, request *http.Request) {
 			write.WriteHeader(http.StatusInternalServerError)
 			return
 		} else {
-			//_, err = write.Write([]byte(request.Host + "/static/view/home.html"))
-			//if err != nil {
-			//	write.WriteHeader(http.StatusInternalServerError)
-			//	return
-			//}
 			resp := util.RespMsg{
 				Code: 0,
 				Msg:  "ok",
@@ -151,6 +146,7 @@ func UserInfoHandler(write http.ResponseWriter, request *http.Request) {
 }
 
 func IsTokenValid(token string) bool {
+	fmt.Println(token)
 	return true
 }
 
