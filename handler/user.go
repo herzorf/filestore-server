@@ -123,12 +123,6 @@ func UserInfoHandler(write http.ResponseWriter, request *http.Request) {
 		panic(err)
 	}
 	username := request.Form.Get("username")
-	token := request.Form.Get("token")
-	isTokenValid := IsTokenValid(token)
-	if !isTokenValid {
-		write.WriteHeader(http.StatusForbidden)
-		return
-	}
 	info, err := db.GetUserInfo(username)
 	if err != nil {
 		write.WriteHeader(http.StatusForbidden)
