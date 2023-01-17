@@ -15,7 +15,7 @@ func HTTPIntercepter(h func(w http.ResponseWriter, r *http.Request)) func(w http
 		}
 		username := request.Form.Get("username")
 		token := request.Form.Get("token")
-		if len(username) < 3 || !IsTokenValid(token) {
+		if len(username) < 3 || !IsTokenValid(username, token) {
 			write.WriteHeader(http.StatusForbidden)
 			return
 		}

@@ -101,3 +101,23 @@ func GetUserInfo(username string) (User, error) {
 	}
 	return user, err
 }
+
+func GetUserToken(username string) (string, error) {
+	token := ""
+	prepare, err := mysql.ConnectDB().Prepare("SELECT user_token FROM user_token WHERE user_name =? LIMIT 1")
+	if err != nil {
+		fmt.Println("prepare err", err)
+		return token, err
+	}
+	defer func() {
+		err2 := prepare.Close()
+		if err2 != nil {
+			panic(err2)
+		}
+	}()
+	err = prepare.QueryRow(username).Scan(&token)
+	if err != nil {
+		return token, err
+	}
+	return token, nil
+}

@@ -139,8 +139,15 @@ func UserInfoHandler(write http.ResponseWriter, request *http.Request) {
 	}
 }
 
-func IsTokenValid(token string) bool {
-	fmt.Println(token)
+func IsTokenValid(username string, token string) bool {
+	userToken, err := db.GetUserToken(username)
+	if err != nil {
+		fmt.Println(err)
+		return false
+	}
+	if userToken != token {
+		return false
+	}
 	return true
 }
 
