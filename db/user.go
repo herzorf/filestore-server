@@ -68,3 +68,36 @@ func UpdateToken(username string, token string) bool {
 	}()
 	return true
 }
+
+type User struct {
+	Username     string
+	Email        string
+	Phone        string
+	SignUpAt     string
+	LastActiveAt string
+	Status       int
+}
+
+func GetUserInfo(username string) (User, error) {
+	user := User{}
+	prepare, err := mysql.ConnectDB().Prepare("SELECT user_name,signup_at FROM  user WHERE user_name=? LIMIT 1")
+	if err != nil {
+		fmt.Println("prepare err", err)
+		return user, err
+	}
+	if err != nil {
+		fmt.Println("prepare err", err)
+		return user, nil
+	}
+	defer func() {
+		err2 := prepare.Close()
+		if err2 != nil {
+			panic(err2)
+		}
+	}()
+	err = prepare.QueryRow(username).Scan(&user.Username, &user.SignUpAt)
+	if err != nil {
+		return user, err
+	}
+	return user, err
+}

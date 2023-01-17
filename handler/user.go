@@ -95,13 +95,63 @@ func SignInHandler(write http.ResponseWriter, request *http.Request) {
 			write.WriteHeader(http.StatusInternalServerError)
 			return
 		} else {
-			_, err = write.Write([]byte(request.Host + "/static/view/home.html"))
+			//_, err = write.Write([]byte(request.Host + "/static/view/home.html"))
+			//if err != nil {
+			//	write.WriteHeader(http.StatusInternalServerError)
+			//	return
+			//}
+			resp := util.RespMsg{
+				Code: 0,
+				Msg:  "ok",
+				Data: struct {
+					Location string
+					Username string
+					Token    string
+				}{
+					Location: request.Host + "/static/view/home.html",
+					Username: username,
+					Token:    token,
+				},
+			}
+			_, err := write.Write(resp.JSONBytes())
 			if err != nil {
-				write.WriteHeader(http.StatusInternalServerError)
-				return
+				panic(err)
 			}
 		}
 	}
+}
+
+func UserInfoHandler(write http.ResponseWriter, request *http.Request) {
+	err := request.ParseForm()
+	if err != nil {
+		write.WriteHeader(http.StatusInternalServerError)
+		panic(err)
+	}
+	username := request.Form.Get("username")
+	token := request.Form.Get("token")
+	isTokenValid := IsTokenValid(token)
+	if !isTokenValid {
+		write.WriteHeader(http.StatusForbidden)
+		return
+	}
+	info, err := db.GetUserInfo(username)
+	if err != nil {
+		write.WriteHeader(http.StatusForbidden)
+		return
+	}
+	resp := util.RespMsg{
+		Code: 0,
+		Msg:  "ok",
+		Data: info,
+	}
+	_, err = write.Write(resp.JSONBytes())
+	if err != nil {
+		write.WriteHeader(http.StatusInternalServerError)
+	}
+}
+
+func IsTokenValid(token string) bool {
+	return true
 }
 
 func GenToken(username string) string {
