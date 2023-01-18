@@ -15,6 +15,8 @@ func main() {
 	http.HandleFunc("/file/download", handler.DownloadHandler)
 	http.HandleFunc("/file/update", handler.FileMetaUpdateHandler)
 	http.HandleFunc("/file/delete", handler.FileDeleteHandler)
+	http.HandleFunc("/file/fastUpload", handler.HTTPIntercepter(handler.TryFastUploadHandler))
+
 	http.HandleFunc("/user/signup", handler.SignUpHandler)
 	http.HandleFunc("/user/signin", handler.SignInHandler)
 	http.HandleFunc("/user/filemeta", handler.UserFileQueryHandler)

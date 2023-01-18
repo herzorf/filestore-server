@@ -208,3 +208,48 @@ func FileDeleteHandler(write http.ResponseWriter, request *http.Request) {
 	meta.RemoveFileMeta(fileSha1)
 	write.WriteHeader(http.StatusOK)
 }
+
+func TryFastUploadHandler(write http.ResponseWriter, request *http.Request) {
+	err := request.ParseForm()
+	if err != nil {
+		fmt.Println(err)
+		write.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	username := request.Form.Get("username")
+	fileHash := request.Form.Get("fileHash")
+	fileName := request.Form.Get("fileName")
+	fileSize, _ := strconv.Atoi(request.Form.Get("fileSize"))
+	fileMeta, err := db.OnGetFileMeta(fileHash)
+	if err != nil {
+		write.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	if fileMeta == nil {
+		resp := util.RespMsg{
+			Code: -1,
+			Msg:  "妙传失败，请使用普通上传接口",
+			Data: nil,
+		}
+		_, err = write.Write(resp.JSONBytes())
+		return
+	}
+	finished := db.OnUserFileUploadFinished(username, fileHash, fileName, int64(fileSize))
+	if finished {
+		resp := util.RespMsg{
+			Code: 0,
+			Msg:  "妙传成功",
+			Data: nil,
+		}
+		_, err = write.Write(resp.JSONBytes())
+		return
+	} else {
+		resp := util.RespMsg{
+			Code: -2,
+			Msg:  "妙传失败",
+			Data: nil,
+		}
+		_, err = write.Write(resp.JSONBytes())
+		return
+	}
+}
