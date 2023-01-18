@@ -18,9 +18,9 @@ func init() {
 }
 
 // UpdateFileMeta 新增和更新fmeta
-func UpdateFileMeta(fmeta FileMeta) {
-	FileMetas[fmeta.FileSha1] = fmeta
-}
+//func UpdateFileMeta(fmeta FileMeta) {
+//	FileMetas[fmeta.FileSha1] = fmeta
+//}
 
 // UpdateFileMetaDB 更新文件元信息到mysql中
 func UpdateFileMetaDB(fmeta FileMeta) bool {
