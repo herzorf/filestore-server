@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/herzorf/filestroe-server/db"
 	"github.com/herzorf/filestroe-server/meta"
 	"github.com/herzorf/filestroe-server/util"
 	"io"
@@ -61,7 +62,18 @@ func UploadHandler(writer http.ResponseWriter, request *http.Request) {
 		}
 		fileMeta.FileSha1 = util.FileSha1(newFile)
 		meta.UpdateFileMetaDB(fileMeta)
-		http.Redirect(writer, request, "/file/upload/suc", http.StatusFound)
+		_ = request.ParseForm()
+		username := request.Form.Get("username")
+		finished := db.OnUserFileUploadFinished(username, fileMeta.FileSha1, fileMeta.FileName, fileMeta.FileSize)
+		if !finished {
+			_, err := writer.Write([]byte("Upload fail"))
+			if err != nil {
+				writer.WriteHeader(http.StatusInternalServerError)
+			}
+			return
+		} else {
+			http.Redirect(writer, request, "/file/upload/suc", http.StatusFound)
+		}
 	}
 }
 

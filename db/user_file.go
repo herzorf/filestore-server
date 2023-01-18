@@ -28,7 +28,7 @@ func OnUserFileUploadFinished(username, fileHash, fileName string, fileSize int6
 			panic(err2)
 		}
 	}()
-	_, err = stmt.Exec(fileName, fileHash, fileSize, fileName, time.Now())
+	_, err = stmt.Exec(username, fileHash, fileSize, fileName, time.Now())
 	if err != nil {
 		fmt.Println("insert err", err)
 		return false
