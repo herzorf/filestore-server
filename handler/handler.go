@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -91,7 +92,7 @@ func GetFileMetaHandler(write http.ResponseWriter, request *http.Request) {
 		panic(err)
 	}
 	fileHash := request.Form["filehash"][0]
-	fileMeta, err := meta.GetFIleMetaDB(fileHash)
+	fileMeta, err := meta.GetFileMetaDB(fileHash)
 	if err != nil {
 		write.WriteHeader(http.StatusInternalServerError)
 		panic(err)
@@ -107,6 +108,27 @@ func GetFileMetaHandler(write http.ResponseWriter, request *http.Request) {
 	}
 }
 
+func UserFileQueryHandler(write http.ResponseWriter, request *http.Request) {
+	err := request.ParseForm()
+	if err != nil {
+		write.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	username := request.Form.Get("username")
+	limit, _ := strconv.Atoi(request.Form.Get("limit"))
+	metas, err := db.QueryUserFileMetas(username, limit)
+	marshal, _ := json.Marshal(metas)
+	if err != nil {
+		write.WriteHeader(http.StatusInternalServerError)
+		return
+	} else {
+		_, err = write.Write(marshal)
+		if err != nil {
+			write.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	}
+}
 func DownloadHandler(write http.ResponseWriter, request *http.Request) {
 	err := request.ParseForm()
 	if err != nil {

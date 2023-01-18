@@ -32,7 +32,7 @@ func GetFileMeta(filesha1 string) FileMeta {
 	return FileMetas[filesha1]
 }
 
-func GetFIleMetaDB(filesha1 string) (FileMeta, error) {
+func GetFileMetaDB(filesha1 string) (FileMeta, error) {
 	meta, err := db.OnGetFileMeta(filesha1)
 	if err != nil {
 		panic(err)

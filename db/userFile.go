@@ -61,6 +61,7 @@ func QueryUserFileMetas(username string, limit int) ([]UserFile, error) {
 		if err != nil {
 			log.Fatal(err)
 		}
+		userFile.Username = username
 		userFiles = append(userFiles, userFile)
 	}
 	return userFiles, nil
