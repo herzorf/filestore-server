@@ -3,6 +3,7 @@ package db
 import (
 	"fmt"
 	"github.com/herzorf/filestroe-server/db/mysql"
+	"log"
 	"time"
 )
 
@@ -34,4 +35,33 @@ func OnUserFileUploadFinished(username, fileHash, fileName string, fileSize int6
 		return false
 	}
 	return true
+}
+
+func QueryUserFileMetas(username string, limit int) ([]UserFile, error) {
+	var userFiles []UserFile
+	stmt, err := mysql.ConnectDB().Prepare("SELECT file_sha1,file_name,file_size,upload_at,last_update FROM user_file WHERE user_name = ? LIMIT ?")
+	if err != nil {
+		fmt.Println("prepare err", err)
+		return userFiles, err
+	}
+	defer func() {
+		err2 := stmt.Close()
+		if err2 != nil {
+			panic(err2)
+		}
+	}()
+	rows, err := stmt.Query(username, limit)
+	if err != nil {
+		fmt.Println("prepare err", err)
+		return userFiles, err
+	}
+	for rows.Next() {
+		userFile := UserFile{}
+		err := rows.Scan(&userFile.FileHash, &userFile.FileName, &userFile.FileSize, &userFile.UploadAt, &userFile.LastUpdated)
+		if err != nil {
+			log.Fatal(err)
+		}
+		userFiles = append(userFiles, userFile)
+	}
+	return userFiles, nil
 }
