@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/herzorf/filestroe-server/cache/redis"
 	"github.com/herzorf/filestroe-server/db/mysql"
 	"github.com/herzorf/filestroe-server/handler"
 	"net/http"
@@ -9,6 +10,8 @@ import (
 
 func main() {
 	mysql.ConnectDB()
+	pool := redis.RedisPool()
+	fmt.Printf("%+v", pool)
 	http.HandleFunc("/file/upload", handler.UploadHandler)
 	http.HandleFunc("/file/upload/suc", handler.UploadSucHandler)
 	http.HandleFunc("/file/meta", handler.GetFileMetaHandler)
