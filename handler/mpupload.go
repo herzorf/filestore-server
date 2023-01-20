@@ -2,12 +2,15 @@ package handler
 
 import (
 	"fmt"
+	redis2 "github.com/gomodule/redigo/redis"
 	"github.com/herzorf/filestroe-server/cache/redis"
+	"github.com/herzorf/filestroe-server/db"
 	"github.com/herzorf/filestroe-server/util"
 	"math"
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -60,7 +63,7 @@ func UploadPartHandler(write http.ResponseWriter, request *http.Request) {
 		write.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	username := request.Form.Get("username")
+	_ = request.Form.Get("username")
 	uploadID := request.Form.Get("uploadid")
 	chunkIndex := request.Form.Get("index")
 
@@ -95,5 +98,49 @@ func UploadPartHandler(write http.ResponseWriter, request *http.Request) {
 		_, err = create.Write(buf[:n])
 	}
 	_, err = rConn.Do("HSET", "MP_"+uploadID, "chkidx"+chunkIndex, 1)
+	_, err = write.Write(util.NewRespMsg(0, "ok", nil).JSONBytes())
+}
+func CompleteUploadHandler(write http.ResponseWriter, request *http.Request) {
+	err := request.ParseForm()
+	if err != nil {
+		panic(err)
+	}
+	username := request.Form.Get("username")
+	uploadID := request.Form.Get("uploadid")
+	filehash := request.Form.Get("filehash")
+	filesize := request.Form.Get("filesize")
+	filename := request.Form.Get("filename")
+
+	rConn := redis.RedisPool().Get()
+	defer func() {
+		err2 := rConn.Close()
+		if err2 != nil {
+			panic(err2)
+		}
+	}()
+	values, err := redis2.Values(rConn.Do("HGETALL", "MP_"+uploadID))
+	if err != nil {
+		_, err = write.Write(util.NewRespMsg(-1, "complete upload err"+err.Error(), nil).JSONBytes())
+		return
+	}
+	totalCount := 0
+	chunkCount := 0
+	for i := 0; i < len(values); i += 2 {
+		key := string(values[i].([]byte))
+		value := string(values[i+1].([]byte))
+		if key == "chunkcount" {
+			totalCount, _ = strconv.Atoi(value)
+		} else if strings.HasPrefix(key, "chkidx_") && value == "1" {
+			chunkCount += 1
+		}
+	}
+	if totalCount != chunkCount {
+		_, err = write.Write(util.NewRespMsg(-2, "invalid request", nil).JSONBytes())
+		return
+	}
+
+	atoi, _ := strconv.Atoi(filesize)
+	db.OnfileUpdateFinish(filehash, filename, atoi, "")
+	db.OnUserFileUploadFinished(username, filehash, filename, int64(atoi))
 	_, err = write.Write(util.NewRespMsg(0, "ok", nil).JSONBytes())
 }
