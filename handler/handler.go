@@ -73,7 +73,7 @@ func UploadHandler(writer http.ResponseWriter, request *http.Request) {
 			}
 			return
 		} else {
-			http.Redirect(writer, request, "/file/upload/suc", http.StatusFound)
+			_, err = writer.Write(util.NewRespMsg(0, "success upload", nil).JSONBytes())
 		}
 	}
 }
