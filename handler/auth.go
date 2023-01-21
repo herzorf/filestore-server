@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
 )
 
@@ -19,7 +18,6 @@ func HTTPIntercepter(h func(w http.ResponseWriter, r *http.Request)) func(w http
 			write.WriteHeader(http.StatusForbidden)
 			return
 		}
-		fmt.Println("验证成功")
 		h(write, request)
 	}
 }

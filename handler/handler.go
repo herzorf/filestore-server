@@ -117,12 +117,12 @@ func UserFileQueryHandler(write http.ResponseWriter, request *http.Request) {
 	username := request.Form.Get("username")
 	limit, _ := strconv.Atoi(request.Form.Get("limit"))
 	metas, err := db.QueryUserFileMetas(username, limit)
-	marshal, _ := json.Marshal(metas)
+	//marshal, _ := json.Marshal(metas)
 	if err != nil {
 		write.WriteHeader(http.StatusInternalServerError)
 		return
 	} else {
-		_, err = write.Write(marshal)
+		_, err = write.Write(util.NewRespMsg(0, "ok", metas).JSONBytes())
 		if err != nil {
 			write.WriteHeader(http.StatusInternalServerError)
 			return
