@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"github.com/herzorf/filestroe-server/util"
 	"net/http"
 )
 
@@ -15,7 +16,7 @@ func HTTPIntercepter(h func(w http.ResponseWriter, r *http.Request)) func(w http
 		username := request.Form.Get("username")
 		token := request.Form.Get("token")
 		if len(username) < 3 || !IsTokenValid(username, token) {
-			write.WriteHeader(http.StatusForbidden)
+			_, err = write.Write(util.NewRespMsg(403, "forbidden", nil).JSONBytes())
 			return
 		}
 		h(write, request)
