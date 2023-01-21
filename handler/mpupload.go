@@ -9,6 +9,7 @@ import (
 	"math"
 	"net/http"
 	"os"
+	"path"
 	"strconv"
 	"strings"
 	"time"
@@ -75,7 +76,12 @@ func UploadPartHandler(write http.ResponseWriter, request *http.Request) {
 			panic(err2)
 		}
 	}()
-	create, err := os.Create("data/" + uploadID + "/" + chunkIndex)
+	fpath := "/data/" + uploadID + "/" + chunkIndex
+	err = os.MkdirAll(path.Dir(fpath), 0744)
+	if err != nil {
+		fmt.Println("MKdirAll err", err)
+	}
+	create, err := os.Create(fpath)
 	if err != nil {
 		fmt.Println("os create err", err)
 		_, err = write.Write(util.NewRespMsg(-1, "upload part failed", nil).JSONBytes())

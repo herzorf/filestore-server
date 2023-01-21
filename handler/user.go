@@ -48,7 +48,7 @@ func SignUpHandler(write http.ResponseWriter, request *http.Request) {
 			write.WriteHeader(http.StatusInternalServerError)
 			return
 		} else {
-			_, err := write.Write([]byte("success sign in "))
+			_, err := write.Write(util.NewRespMsg(0, "success signin in", nil).JSONBytes())
 			if err != nil {
 				fmt.Println("write err ", err)
 			}
