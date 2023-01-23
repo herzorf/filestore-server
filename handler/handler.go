@@ -16,16 +16,7 @@ import (
 
 // UploadHandler 处理上传文件
 func UploadHandler(writer http.ResponseWriter, request *http.Request) {
-	if request.Method == "GET" {
-		file, err := os.ReadFile("./static/view/index.html")
-		if err != nil {
-			fmt.Printf("文件读取错误 %s", err.Error())
-		}
-		_, err = writer.Write(file)
-		if err != nil {
-			fmt.Println("文件写入错误", err)
-		}
-	} else if request.Method == "POST" {
+	if request.Method == "POST" {
 		file, header, err := request.FormFile("file")
 		if err != nil {
 			fmt.Println("文件读取错误", err)
