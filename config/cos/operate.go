@@ -3,8 +3,8 @@ package cos
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/url"
-	"os"
 )
 
 func GetUploadObjectUrl(key string) *url.URL {
@@ -13,7 +13,7 @@ func GetUploadObjectUrl(key string) *url.URL {
 	return objectUrl
 }
 
-func PutFileObject(file *os.File, name string) error {
+func PutFileObject(file io.Reader, name string) error {
 
 	_, err := ConnectCos().Object.Put(context.Background(), name, file, nil)
 	if err != nil {

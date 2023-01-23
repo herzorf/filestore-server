@@ -34,33 +34,34 @@ func UploadHandler(writer http.ResponseWriter, request *http.Request) {
 			Location: "temp/" + header.Filename,
 			UploadAt: time.Now().Format("2006-01-11 15:4:5"),
 		}
-		newFile, err := os.Create(fileMeta.Location)
-		if err != nil {
-			fmt.Println("文件创建错误", err)
-			return
-		}
-		defer func() {
-			err := newFile.Close()
-			if err != nil {
-				fmt.Println("创建的文件关闭错误", err)
-			}
-		}()
-		fileMeta.FileSize, err = io.Copy(newFile, file)
-		if err != nil {
-			fmt.Println("文件拷贝错误", err)
-		}
-		_, err = newFile.Seek(0, 0)
-		if err != nil {
-			fmt.Println("file seek 错误", err)
-		}
-		fileMeta.FileSha1 = util.FileSha1(newFile)
+		//newFile, err := os.Create(fileMeta.Location)
+		//if err != nil {
+		//	fmt.Println("文件创建错误", err)
+		//	return
+		//}
+		//defer func() {
+		//	err := newFile.Close()
+		//	if err != nil {
+		//		fmt.Println("创建的文件关闭错误", err)
+		//	}
+		//}()
+		//fileMeta.FileSize, err = io.Copy(newFile, file)
+		fileMeta.FileSize = header.Size
+		//if err != nil {
+		//	fmt.Println("文件拷贝错误", err)
+		//}
+		//_, err = newFile.Seek(0, 0)
+		//if err != nil {
+		//	fmt.Println("file seek 错误", err)
+		//}
+		fileMeta.FileSha1 = util.FileSha1(file)
 		meta.UpdateFileMetaDB(fileMeta)
-		fd, err := os.Open(fileMeta.Location)
-		if err != nil {
-			panic(err)
-		}
-		defer fd.Close()
-		err = cos.PutFileObject(fd, fileMeta.FileName)
+		//fd, err := os.Open(fileMeta.Location)
+		//if err != nil {
+		//	panic(err)
+		//}
+		//defer fd.Close()
+		err = cos.PutFileObject(file, fileMeta.FileName)
 		if err != nil {
 			fmt.Println("put object err", err)
 		}
