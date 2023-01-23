@@ -2,15 +2,16 @@ package main
 
 import (
 	"fmt"
-	"github.com/herzorf/filestroe-server/db/mysql"
+	"github.com/herzorf/filestroe-server/config/cos"
 	"github.com/herzorf/filestroe-server/handler"
 	"net/http"
 )
 
 func main() {
-	mysql.ConnectDB()
+	//mysql.ConnectDB()
 	//pool := redis.RedisPool()
 	//fmt.Printf("%+v", pool)
+	cos.ConnectCos()
 	http.HandleFunc("/api/file/upload", handler.UploadHandler) //do
 	//http.HandleFunc("/api/file/upload/suc", handler.UploadSucHandler)
 	http.HandleFunc("/api/file/meta", handler.GetFileMetaHandler)
