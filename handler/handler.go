@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/herzorf/filestroe-server/config/cos"
 	"github.com/herzorf/filestroe-server/db"
 	"github.com/herzorf/filestroe-server/meta"
 	"github.com/herzorf/filestroe-server/util"
@@ -54,6 +55,15 @@ func UploadHandler(writer http.ResponseWriter, request *http.Request) {
 		}
 		fileMeta.FileSha1 = util.FileSha1(newFile)
 		meta.UpdateFileMetaDB(fileMeta)
+		fd, err := os.Open(fileMeta.Location)
+		if err != nil {
+			panic(err)
+		}
+		defer fd.Close()
+		err = cos.PutFileObject(fd, fileMeta.FileName)
+		if err != nil {
+			fmt.Println("put object err", err)
+		}
 		_ = request.ParseForm()
 		username := request.Form.Get("username")
 		finished := db.OnUserFileUploadFinished(username, fileMeta.FileSha1, fileMeta.FileName, fileMeta.FileSize)

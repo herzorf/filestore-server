@@ -13,7 +13,6 @@ type BaseURL struct {
 func ConnectCos() *cos.Client {
 	u, _ := url.Parse("https://filestore-store-1304254779.cos.ap-shanghai.myqcloud.com")
 	b := &cos.BaseURL{BucketURL: u}
-	// 1.永久密钥
 	client := cos.NewClient(b, &http.Client{
 		Transport: &cos.AuthorizationTransport{
 			SecretID:  SECRETID,
