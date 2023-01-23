@@ -1,7 +1,6 @@
 package cos
 
 import (
-	"fmt"
 	"github.com/tencentyun/cos-go-sdk-v5"
 	"net/http"
 	"net/url"
@@ -21,9 +20,5 @@ func ConnectCos() *cos.Client {
 			SecretKey: SECRETKEY,
 		},
 	})
-
-	key := "萌兔兔.png"
-	ourl := client.Object.GetObjectURL(key)
-	fmt.Println(ourl)
 	return client
 }

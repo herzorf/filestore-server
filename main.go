@@ -11,6 +11,7 @@ func main() {
 	//mysql.ConnectDB()
 	//pool := redis.RedisPool()
 	//fmt.Printf("%+v", pool)
+	cos.GetUploadObjectUrl("萌兔兔.png")
 	cos.ConnectCos()
 	http.HandleFunc("/api/file/upload", handler.UploadHandler) //do
 	//http.HandleFunc("/api/file/upload/suc", handler.UploadSucHandler)
