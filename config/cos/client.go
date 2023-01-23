@@ -1,7 +1,6 @@
 package cos
 
 import (
-	"context"
 	"fmt"
 	"github.com/tencentyun/cos-go-sdk-v5"
 	"net/http"
@@ -23,12 +22,8 @@ func ConnectCos() *cos.Client {
 		},
 	})
 
-	s, _, err := client.Service.Get(context.Background())
-	if err != nil {
-		panic(err)
-	}
-	for _, b := range s.Buckets {
-		fmt.Printf("%#v\n", b)
-	}
+	key := "萌兔兔.png"
+	ourl := client.Object.GetObjectURL(key)
+	fmt.Println(ourl)
 	return client
 }
