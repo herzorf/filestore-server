@@ -33,11 +33,6 @@ func Sha1(data []byte) string {
 }
 
 func FileSha1(file io.Reader) string {
-	//h := sha1.New()
-	//h.Write(file)
-	//bs := h.Sum(nil)
-	//fmt.Printf("%x\n", bs)
-	//return hex.EncodeToString(bs)
 	_sha1 := sha1.New()
 	_, err := io.Copy(_sha1, file)
 	if err != nil {
