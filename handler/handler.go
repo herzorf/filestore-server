@@ -57,9 +57,16 @@ func UploadHandler(writer http.ResponseWriter, request *http.Request) {
 		//if err != nil {
 		//	fmt.Println("file seek 错误", err)
 		//}
-		all, err := io.ReadAll(file)
-		reader := bytes.NewReader(all)
-		fileMeta.FileSha1 = util.FileSha1(file)
+
+		body := &bytes.Buffer{}
+		_, err = io.Copy(body, file)
+		//fileByte, err := io.ReadAll(file)
+		//reader := bytes.NewReader(fileByte)
+		//fmt.Println(reader)
+		openFile, err := header.Open()
+
+		fileMeta.FileSha1 = util.FileSha1(openFile)
+		fmt.Println(fileMeta.FileSha1)
 		//meta.UpdateFileMetaDB(fileMeta)
 		//fd, err := os.Open(fileMeta.Location)
 		//if err != nil {
@@ -67,9 +74,8 @@ func UploadHandler(writer http.ResponseWriter, request *http.Request) {
 		//}
 		//defer fd.Close()
 
-		err = cos.PutFileObject(reader, fileMeta.FileName)
+		err = cos.PutFileObject(body, fileMeta.FileSha1+".jpeg")
 		return
-
 		if err != nil {
 			fmt.Println("put object err", err)
 		}
