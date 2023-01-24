@@ -44,7 +44,6 @@ func UploadHandler(writer http.ResponseWriter, request *http.Request) {
 		fileMeta.FileSha1 = util.FileSha1(openFile)
 		meta.UpdateFileMetaDB(fileMeta)
 		contentType := header.Header.Get("Content-Type")
-		fmt.Println(contentType)
 		err = cos.PutFileObject(body, fileMeta.FileSha1, contentType)
 		if err != nil {
 			fmt.Println("put object err", err)
