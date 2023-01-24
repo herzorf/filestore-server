@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/herzorf/filestroe-server/config/cos"
@@ -39,6 +40,8 @@ func UploadHandler(writer http.ResponseWriter, request *http.Request) {
 		//	fmt.Println("文件创建错误", err)
 		//	return
 		//}
+		//request.ParseMultipartForm(1024 * 1024 * 5)
+
 		//defer func() {
 		//	err := newFile.Close()
 		//	if err != nil {
@@ -54,14 +57,19 @@ func UploadHandler(writer http.ResponseWriter, request *http.Request) {
 		//if err != nil {
 		//	fmt.Println("file seek 错误", err)
 		//}
+		all, err := io.ReadAll(file)
+		reader := bytes.NewReader(all)
 		fileMeta.FileSha1 = util.FileSha1(file)
-		meta.UpdateFileMetaDB(fileMeta)
+		//meta.UpdateFileMetaDB(fileMeta)
 		//fd, err := os.Open(fileMeta.Location)
 		//if err != nil {
 		//	panic(err)
 		//}
 		//defer fd.Close()
-		err = cos.PutFileObject(file, fileMeta.FileName)
+
+		err = cos.PutFileObject(reader, fileMeta.FileName)
+		return
+
 		if err != nil {
 			fmt.Println("put object err", err)
 		}

@@ -14,7 +14,6 @@ func GetUploadObjectUrl(key string) *url.URL {
 }
 
 func PutFileObject(file io.Reader, name string) error {
-
 	_, err := ConnectCos().Object.Put(context.Background(), name, file, nil)
 	if err != nil {
 		return err
