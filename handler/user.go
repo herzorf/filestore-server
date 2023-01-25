@@ -71,27 +71,18 @@ func SignInHandler(c *gin.Context) {
 	}
 }
 
-func UserInfoHandler(write http.ResponseWriter, request *http.Request) {
-	err := request.ParseForm()
+func UserInfoHandler(c *gin.Context) {
+	var user User
+	err := c.ShouldBindJSON(&user)
 	if err != nil {
-		write.WriteHeader(http.StatusInternalServerError)
-		panic(err)
+		log.Println("bind err ", err)
 	}
-	username := request.Form.Get("username")
-	info, err := db.GetUserInfo(username)
+	info, err := db.GetUserInfo(user.Username)
 	if err != nil {
-		write.WriteHeader(http.StatusForbidden)
+		response.Response(c, http.StatusForbidden, -1, "获取用户信息失败", nil)
 		return
 	}
-	resp := util.RespMsg{
-		Code: 0,
-		Msg:  "ok",
-		Data: info,
-	}
-	_, err = write.Write(resp.JSONBytes())
-	if err != nil {
-		write.WriteHeader(http.StatusInternalServerError)
-	}
+	response.Success(c, "请求成功", info)
 }
 
 func IsTokenValid(username string, token string) bool {
