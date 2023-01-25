@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/herzorf/filestroe-server/db"
+	"github.com/herzorf/filestroe-server/response"
 	"github.com/herzorf/filestroe-server/util"
 	"log"
 	"net/http"
@@ -26,18 +27,14 @@ func SignUpHandler(c *gin.Context) {
 		log.Fatal("bind err", err)
 	}
 	if len(user.Password) < 6 || len(user.Username) < 6 {
-		c.JSON(http.StatusOK, gin.H{
-			"code":    -1,
-			"message": "用户名密码至少六位。",
-			"data":    nil,
-		})
+		response.Fail(c, "用户名密码至少六位。", nil)
 	}
 	encPassword := util.Sha1([]byte(user.Password + pwdSalt))
 	err = db.UserSignUp(user.Username, encPassword)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"code": -1})
+		response.Fail(c, "注册失败", nil)
 	} else {
-		c.JSON(http.StatusOK, gin.H{"code": 0})
+		response.Success(c, "注册成功", nil)
 	}
 }
 
