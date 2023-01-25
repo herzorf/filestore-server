@@ -9,6 +9,8 @@ func Router() *gin.Engine {
 	r := gin.Default()
 
 	r.POST("/api/user/signup", handler.SignUpHandler)
+	r.POST("/api/user/signin", handler.SignInHandler)
+	r.POST("/api/user/info", handler.UserInfoHandler)
 
 	return r
 }

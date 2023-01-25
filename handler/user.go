@@ -8,7 +8,6 @@ import (
 	"github.com/herzorf/filestroe-server/util"
 	"log"
 	"net/http"
-	"os"
 	"time"
 )
 
@@ -38,63 +37,37 @@ func SignUpHandler(c *gin.Context) {
 	}
 }
 
-func SignInHandler(write http.ResponseWriter, request *http.Request) {
-	if request.Method == "GET" {
-		file, err := os.ReadFile("./static/view/signin.html")
-		if err != nil {
-			fmt.Println("文件读取错误", err)
-			write.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		_, err = write.Write(file)
-		if err != nil {
-			fmt.Println("write err", err)
-			write.WriteHeader(http.StatusInternalServerError)
-			return
-		}
+func SignInHandler(c *gin.Context) {
+	var user User
+	err := c.ShouldBindJSON(&user)
+	if err != nil {
+		log.Println("bind err", err)
+		response.Response(c, http.StatusInternalServerError, -1, "", nil)
+	}
+	encPassword := util.Sha1([]byte(user.Password + pwdSalt))
+
+	passwordCheck := db.UserSignIn(user.Username, encPassword)
+	if !passwordCheck {
+		response.Fail(c, "用户名密码错误", nil)
+		return
+	}
+	token := GenToken(user.Username)
+	updateToken := db.UpdateToken(user.Username, token)
+	if !updateToken {
+		response.Response(c, http.StatusInternalServerError, -1, "", nil)
+		return
 	} else {
-		err := request.ParseForm()
-		if err != nil {
-			fmt.Println(err)
-			write.WriteHeader(http.StatusInternalServerError)
+		resp := struct {
+			Location string
+			Username string
+			Token    string
+		}{
+			Location: c.ClientIP() + "/static/view/home.html",
+			Username: user.Username,
+			Token:    token,
 		}
-		username := request.Form.Get("username")
-		password := request.Form.Get("password")
-
-		encPassword := util.Sha1([]byte(password + pwdSalt))
-
-		passwordCheck := db.UserSignIn(username, encPassword)
-		if !passwordCheck {
-			_, err := write.Write([]byte("用户名密码错误"))
-			if err != nil {
-				write.WriteHeader(http.StatusInternalServerError)
-			}
-			return
-		}
-		token := GenToken(username)
-		updateToken := db.UpdateToken(username, token)
-		if !updateToken {
-			write.WriteHeader(http.StatusInternalServerError)
-			return
-		} else {
-			resp := util.RespMsg{
-				Code: 0,
-				Msg:  "ok",
-				Data: struct {
-					Location string
-					Username string
-					Token    string
-				}{
-					Location: request.Host + "/static/view/home.html",
-					Username: username,
-					Token:    token,
-				},
-			}
-			_, err := write.Write(resp.JSONBytes())
-			if err != nil {
-				panic(err)
-			}
-		}
+		log.Println(resp)
+		response.Success(c, "登录成功", resp)
 	}
 }
 
