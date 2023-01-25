@@ -2,8 +2,10 @@ package handler
 
 import (
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/herzorf/filestroe-server/db"
 	"github.com/herzorf/filestroe-server/util"
+	"log"
 	"net/http"
 	"os"
 	"time"
@@ -11,48 +13,31 @@ import (
 
 const pwdSalt = "*#890"
 
-func SignUpHandler(write http.ResponseWriter, request *http.Request) {
-	if request.Method == "GET" {
-		file, err := os.ReadFile("./static/view/signup.html")
-		if err != nil {
-			fmt.Println("文件读取错误", err)
-			write.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		_, err = write.Write(file)
-		if err != nil {
-			fmt.Println("write err", err)
-			write.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-	} else if request.Method == "POST" {
-		err := request.ParseForm()
-		if err != nil {
-			fmt.Println("request.ParseForm err", err)
-			write.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		username := request.Form.Get("username")
-		password := request.Form.Get("password")
-		if len(password) < 5 || len(username) < 3 {
-			_, err := write.Write([]byte("用户名，密码格式不对"))
-			if err != nil {
-				fmt.Println("write err", err)
-				write.WriteHeader(http.StatusInternalServerError)
-			}
-			return
-		}
-		encPassword := util.Sha1([]byte(password + pwdSalt))
-		suc := db.UserSignUp(username, encPassword)
-		if !suc {
-			write.WriteHeader(http.StatusInternalServerError)
-			return
-		} else {
-			_, err := write.Write(util.NewRespMsg(0, "success signin in", nil).JSONBytes())
-			if err != nil {
-				fmt.Println("write err ", err)
-			}
-		}
+type User struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+func SignUpHandler(c *gin.Context) {
+	var user User
+
+	err := c.ShouldBindJSON(&user)
+	if err != nil {
+		log.Fatal("bind err", err)
+	}
+	if len(user.Password) < 6 || len(user.Username) < 6 {
+		c.JSON(http.StatusOK, gin.H{
+			"code":    -1,
+			"message": "用户名密码至少六位。",
+			"data":    nil,
+		})
+	}
+	encPassword := util.Sha1([]byte(user.Password + pwdSalt))
+	err = db.UserSignUp(user.Username, encPassword)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"code": -1})
+	} else {
+		c.JSON(http.StatusOK, gin.H{"code": 0})
 	}
 }
 
