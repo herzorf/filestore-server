@@ -2,7 +2,6 @@ package cos
 
 import (
 	"context"
-	"fmt"
 	"github.com/tencentyun/cos-go-sdk-v5"
 	"io"
 	"net/url"
@@ -10,7 +9,6 @@ import (
 
 func GetUploadObjectUrl(key string) *url.URL {
 	objectUrl := ConnectCos().Object.GetObjectURL(key)
-	fmt.Println(objectUrl)
 	return objectUrl
 }
 

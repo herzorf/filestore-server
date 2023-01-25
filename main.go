@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/herzorf/filestroe-server/config/cos"
 	"github.com/herzorf/filestroe-server/handler"
 	"net/http"
 )
@@ -11,9 +10,7 @@ func main() {
 	//mysql.ConnectDB()
 	//pool := redis.RedisPool()
 	//fmt.Printf("%+v", pool)
-	cos.ConnectCos()
-	url := cos.GetUploadObjectUrl("d2ed3d37f46d8a877847f57eafab1c855cdd58dc")
-	fmt.Println(url)
+	//cos.ConnectCos()
 	http.HandleFunc("/api/file/upload", handler.UploadHandler) //do
 	//http.HandleFunc("/api/file/upload/suc", handler.UploadSucHandler)
 	http.HandleFunc("/api/file/meta", handler.GetFileMetaHandler)
