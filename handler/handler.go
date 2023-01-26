@@ -49,14 +49,6 @@ func UploadHandler(c *gin.Context) {
 	}
 }
 
-// UploadSucHandler Upload Success
-func UploadSucHandler(w http.ResponseWriter, r *http.Request) {
-	_, err := io.WriteString(w, "upload finished!")
-	if err != nil {
-		fmt.Println("io write err", err)
-	}
-}
-
 func GetFileMetaHandler(write http.ResponseWriter, request *http.Request) {
 	err := request.ParseForm()
 	if err != nil {
