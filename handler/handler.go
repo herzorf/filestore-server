@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/herzorf/filestroe-server/config/cos"
 	"github.com/herzorf/filestroe-server/db"
 	"github.com/herzorf/filestroe-server/meta"
+	"github.com/herzorf/filestroe-server/response"
 	"github.com/herzorf/filestroe-server/util"
 	"io"
 	"log"
@@ -93,25 +95,24 @@ func GetFileMetaHandler(write http.ResponseWriter, request *http.Request) {
 	}
 }
 
-func UserFileQueryHandler(write http.ResponseWriter, request *http.Request) {
-	err := request.ParseForm()
-	if err != nil {
-		write.WriteHeader(http.StatusInternalServerError)
-		return
+func UserFileQueryHandler(c *gin.Context) {
+	type QueryFileMeta struct {
+		Username string `json:"username"`
+		Limit    int    `json:"limit"`
 	}
-	username := request.Form.Get("username")
-	limit, _ := strconv.Atoi(request.Form.Get("limit"))
-	metas, err := db.QueryUserFileMetas(username, limit)
-	//marshal, _ := json.Marshal(metas)
+	var queryFileMeta QueryFileMeta
+	err := c.ShouldBindJSON(&queryFileMeta)
 	if err != nil {
-		write.WriteHeader(http.StatusInternalServerError)
+		log.Println("gin bind err111", err)
+	}
+
+	metas, err := db.QueryUserFileMetas(queryFileMeta.Username, queryFileMeta.Limit)
+	if err != nil {
+		response.Fail(c, "查询失败", nil)
 		return
 	} else {
-		_, err = write.Write(util.NewRespMsg(0, "ok", metas).JSONBytes())
-		if err != nil {
-			write.WriteHeader(http.StatusInternalServerError)
-			return
-		}
+		response.Success(c, "请求成功", metas)
+		return
 	}
 }
 func DownloadHandler(write http.ResponseWriter, request *http.Request) {

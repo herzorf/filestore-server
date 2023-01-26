@@ -1,24 +1,37 @@
 package handler
 
 import (
-	"github.com/herzorf/filestroe-server/util"
+	"bytes"
+	"encoding/json"
+	"github.com/gin-gonic/gin"
+	"github.com/herzorf/filestroe-server/response"
+	"io"
+	"log"
 	"net/http"
 )
 
+type UserInfo struct {
+	Username string `json:"username"`
+	Token    string `json:"token"`
+}
+
 // HTTPIntercepter 请求拦截器
-func HTTPIntercepter(h func(w http.ResponseWriter, r *http.Request)) func(w http.ResponseWriter, r *http.Request) {
-	return func(write http.ResponseWriter, request *http.Request) {
-		err := request.ParseForm()
+func HTTPIntercepter() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var userInfo UserInfo
+		requestBody, err := c.GetRawData()
 		if err != nil {
-			write.WriteHeader(http.StatusInternalServerError)
-			panic(err)
+			log.Println(err.Error())
 		}
-		username := request.Form.Get("username")
-		token := request.Form.Get("token")
-		if len(username) < 3 || !IsTokenValid(username, token) {
-			_, err = write.Write(util.NewRespMsg(403, "forbidden", nil).JSONBytes())
+		err = json.Unmarshal(requestBody, &userInfo)
+		if err != nil {
+			log.Println("json Unmarshal err", err)
+		}
+		c.Request.Body = io.NopCloser(bytes.NewBuffer(requestBody)) // 关键点
+		if len(userInfo.Username) < 6 || !IsTokenValid(userInfo.Username, userInfo.Token) {
+			response.Response(c, http.StatusForbidden, 403, "token错误或用户名格式不对", nil)
 			return
 		}
-		h(write, request)
+		c.Next()
 	}
 }

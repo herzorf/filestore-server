@@ -12,5 +12,8 @@ func Router() *gin.Engine {
 	r.POST("/api/user/signin", handler.SignInHandler)
 	r.POST("/api/user/info", handler.UserInfoHandler)
 
+	r.Use(handler.HTTPIntercepter())
+	r.POST("/api/user/filemeta", handler.UserFileQueryHandler)
+
 	return r
 }
