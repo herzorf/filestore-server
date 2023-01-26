@@ -18,50 +18,34 @@ import (
 	"time"
 )
 
-// UploadHandler 处理上传文件
-func UploadHandler(writer http.ResponseWriter, request *http.Request) {
-	if request.Method == "POST" {
-		file, header, err := request.FormFile("file")
-		if err != nil {
-			fmt.Println("文件读取错误", err)
-			return
-		}
-		defer func() {
-			err := file.Close()
-			if err != nil {
-				fmt.Println("读取文件关闭错误", err)
-			}
-		}()
-		fileMeta := meta.FileMeta{
-			FileName: header.Filename,
-			Location: "temp/" + header.Filename,
-			UploadAt: time.Now().Format("2006-01-11 15:4:5"),
-		}
-
-		fileMeta.FileSize = header.Size
-
-		body := &bytes.Buffer{}
-		_, err = io.Copy(body, file)
-		openFile, err := header.Open()
-		fileMeta.FileSha1 = util.FileSha1(openFile)
-		meta.UpdateFileMetaDB(fileMeta)
-		contentType := header.Header.Get("Content-Type")
-		err = cos.PutFileObject(body, fileMeta.FileSha1, contentType)
-		if err != nil {
-			fmt.Println("put object err", err)
-		}
-		_ = request.ParseForm()
-		username := request.Form.Get("username")
-		finished := db.OnUserFileUploadFinished(username, fileMeta.FileSha1, fileMeta.FileName, fileMeta.FileSize)
-		if !finished {
-			_, err := writer.Write([]byte("Upload fail"))
-			if err != nil {
-				writer.WriteHeader(http.StatusInternalServerError)
-			}
-			return
-		} else {
-			_, err = writer.Write(util.NewRespMsg(0, "success upload", nil).JSONBytes())
-		}
+func UploadHandler(c *gin.Context) {
+	file, _ := c.FormFile("file")
+	fileMeta := meta.FileMeta{
+		FileName: file.Filename,
+		Location: "temp/" + file.Filename,
+		FileSize: file.Size,
+		UploadAt: time.Now().Format("2006-01-11 15:4:5"),
+	}
+	openFile, err := file.Open()
+	body := &bytes.Buffer{}
+	_, err = io.Copy(body, openFile)
+	if err != nil {
+		log.Println("copy err", err)
+	}
+	reader := bytes.NewReader(body.Bytes())
+	fileMeta.FileSha1 = util.FileSha1(reader)
+	meta.UpdateFileMetaDB(fileMeta)
+	contentType := file.Header.Get("Content-Type")
+	err = cos.PutFileObject(body, fileMeta.FileSha1, contentType)
+	if err != nil {
+		fmt.Println("put object err", err)
+	}
+	username := c.PostForm("username")
+	finished := db.OnUserFileUploadFinished(username, fileMeta.FileSha1, fileMeta.FileName, fileMeta.FileSize)
+	if !finished {
+		response.Fail(c, "上传失败", nil)
+	} else {
+		response.Success(c, "上传成功", nil)
 	}
 }
 

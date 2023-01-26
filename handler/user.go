@@ -66,7 +66,6 @@ func SignInHandler(c *gin.Context) {
 			Username: user.Username,
 			Token:    token,
 		}
-		log.Println(resp)
 		response.Success(c, "登录成功", resp)
 	}
 }
