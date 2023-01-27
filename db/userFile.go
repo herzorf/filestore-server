@@ -14,6 +14,7 @@ type UserFile struct {
 	FileSize    int64
 	UploadAt    string
 	LastUpdated string
+	Location    string
 }
 
 // OnUserFileUploadFinished 更新用户文件表信息

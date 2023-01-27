@@ -83,6 +83,10 @@ func UserFileQueryHandler(c *gin.Context) {
 	}
 
 	metas, err := db.QueryUserFileMetas(queryFileMeta.Username, queryFileMeta.Limit)
+	for index, _ := range metas {
+		url := cos.GetUploadObjectUrl(metas[index].FileHash)
+		metas[index].Location = url.String()
+	}
 	if err != nil {
 		response.Fail(c, "查询失败", nil)
 		return

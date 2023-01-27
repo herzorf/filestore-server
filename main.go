@@ -6,7 +6,6 @@ import (
 )
 
 func main() {
-	//cos.ConnectCos()
 	router := route.Router()
 	err := router.Run(":8080")
 	if err != nil {
