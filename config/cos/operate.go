@@ -25,3 +25,11 @@ func PutFileObject(file io.Reader, name string, contentType string) error {
 	}
 	return nil
 }
+
+func DeleteFileObject(key string) error {
+	_, err := ConnectCos().Object.Delete(context.Background(), key)
+	if err != nil {
+		return err
+	}
+	return nil
+}

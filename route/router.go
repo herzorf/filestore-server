@@ -15,5 +15,7 @@ func Router() *gin.Engine {
 	r.Use(handler.HTTPIntercepter())
 	r.POST("/api/user/filemeta", handler.UserFileQueryHandler)
 	r.POST("/api/file/upload", handler.UploadHandler)
+	r.POST("/api/file/delete", handler.FileDeleteHandler)
+
 	return r
 }

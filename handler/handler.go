@@ -13,7 +13,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"os"
 	"strconv"
 	"time"
 )
@@ -95,35 +94,6 @@ func UserFileQueryHandler(c *gin.Context) {
 		return
 	}
 }
-func DownloadHandler(write http.ResponseWriter, request *http.Request) {
-	err := request.ParseForm()
-	if err != nil {
-		panic(err)
-	}
-	filesha1 := request.Form.Get("filehash")
-	fileMeta := meta.GetFileMeta(filesha1)
-	file, err := os.Open(fileMeta.Location)
-	if err != nil {
-		log.Printf("文件打开错误%s", err)
-		write.WriteHeader(http.StatusInternalServerError)
-	}
-
-	defer func() {
-		err = file.Close()
-		if err != nil {
-			log.Printf("文件关闭错误%s", err)
-		}
-	}()
-	data, err := io.ReadAll(file)
-	if err != nil {
-		log.Printf("读取文件出错\n")
-		write.WriteHeader(http.StatusInternalServerError)
-	}
-	_, err = write.Write(data)
-	if err != nil {
-		log.Printf("文件返回出错")
-	}
-}
 
 func FileMetaUpdateHandler(write http.ResponseWriter, request *http.Request) {
 	err := request.ParseForm()
@@ -160,19 +130,23 @@ func FileMetaUpdateHandler(write http.ResponseWriter, request *http.Request) {
 	}
 }
 
-func FileDeleteHandler(write http.ResponseWriter, request *http.Request) {
-	err := request.ParseForm()
+type DeleteFileRequest struct {
+	Filehash string `json:"filehash"`
+}
+
+func FileDeleteHandler(c *gin.Context) {
+	var deleteFileRequest DeleteFileRequest
+	err := c.ShouldBindJSON(&deleteFileRequest)
 	if err != nil {
-		panic(err)
+		log.Println("gin bind err", err)
 	}
-	fileSha1 := request.Form.Get("filehash")
-	fileMeta := meta.GetFileMeta(fileSha1)
-	err = os.Remove(fileMeta.Location)
+	log.Println(deleteFileRequest.Filehash)
+	err = cos.DeleteFileObject(deleteFileRequest.Filehash)
 	if err != nil {
-		fmt.Println("文件删除错误", err)
+		response.Response(c, http.StatusInternalServerError, -1, "删除失败", nil)
+		return
 	}
-	meta.RemoveFileMeta(fileSha1)
-	write.WriteHeader(http.StatusOK)
+	response.Success(c, "删除成功", nil)
 }
 
 func TryFastUploadHandler(write http.ResponseWriter, request *http.Request) {

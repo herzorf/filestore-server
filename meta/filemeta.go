@@ -27,7 +27,6 @@ func UpdateFileMetaDB(fmeta FileMeta) bool {
 	return db.OnfileUpdateFinish(fmeta.FileSha1, fmeta.FileName, int(fmeta.FileSize), fmeta.Location)
 }
 
-// GetFileMeta 获取FileMetas里的元信息对象
 func GetFileMeta(filesha1 string) FileMeta {
 	return FileMetas[filesha1]
 }
