@@ -15,7 +15,8 @@ func GetUploadObjectUrl(key string) *url.URL {
 func PutFileObject(file io.Reader, name string, contentType string) error {
 	opt := &cos.ObjectPutOptions{
 		ObjectPutHeaderOptions: &cos.ObjectPutHeaderOptions{
-			ContentType: contentType,
+			ContentType:        contentType,
+			ContentDisposition: "attachment",
 		},
 	}
 	_, err := ConnectCos().Object.Put(context.Background(), name, file, opt)
