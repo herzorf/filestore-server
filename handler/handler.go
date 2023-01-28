@@ -142,7 +142,8 @@ func FileDeleteHandler(c *gin.Context) {
 	}
 	log.Println(deleteFileRequest.Filehash)
 	err = cos.DeleteFileObject(deleteFileRequest.Filehash)
-	if err != nil {
+	err2 := db.DeleteUserFileMetas(deleteFileRequest.Filehash)
+	if err != nil || err2 != nil {
 		response.Response(c, http.StatusInternalServerError, -1, "删除失败", nil)
 		return
 	}

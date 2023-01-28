@@ -67,3 +67,22 @@ func QueryUserFileMetas(username string, limit int) ([]UserFile, error) {
 	}
 	return userFiles, nil
 }
+
+func DeleteUserFileMetas(hash string) error {
+	prepare, err := mysql.ConnectDB().Prepare("DELETE FROM user_file WHERE file_sha1 = ?")
+	if err != nil {
+		return err
+	}
+	defer func() {
+		err2 := prepare.Close()
+		if err2 != nil {
+			log.Println("prepare close err", err)
+		}
+	}()
+	exec, err := prepare.Exec(hash)
+	if err != nil {
+		return err
+	}
+	log.Println(exec.RowsAffected())
+	return nil
+}
