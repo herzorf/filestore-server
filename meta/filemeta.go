@@ -11,42 +11,6 @@ type FileMeta struct {
 	UploadAt string
 }
 
-var FileMetas map[string]FileMeta
-
-func init() {
-	FileMetas = make(map[string]FileMeta)
-}
-
-// UpdateFileMeta 新增和更新fmeta
-//func UpdateFileMeta(fmeta FileMeta) {
-//	FileMetas[fmeta.FileSha1] = fmeta
-//}
-
-// UpdateFileMetaDB 更新文件元信息到mysql中
 func UpdateFileMetaDB(fmeta FileMeta) bool {
 	return db.OnfileUpdateFinish(fmeta.FileSha1, fmeta.FileName, int(fmeta.FileSize), fmeta.Location)
-}
-
-func GetFileMeta(filesha1 string) FileMeta {
-	return FileMetas[filesha1]
-}
-
-func GetFileMetaDB(filesha1 string) (FileMeta, error) {
-	meta, err := db.OnGetFileMeta(filesha1)
-	if err != nil {
-		panic(err)
-		return FileMeta{}, err
-	}
-	fileMeta := FileMeta{
-		FileSha1: meta.Filehash,
-		FileName: meta.FileName.String,
-		FileSize: meta.FileSize.Int64,
-		Location: meta.FileAddr.String,
-	}
-	return fileMeta, nil
-}
-
-// RemoveFileMeta 删除文件元信息
-func RemoveFileMeta(filesha1 string) {
-	delete(FileMetas, filesha1)
 }

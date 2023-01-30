@@ -2,7 +2,6 @@ package handler
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/herzorf/filestroe-server/config/cos"
@@ -13,7 +12,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"strconv"
 	"time"
 )
 
@@ -48,28 +46,6 @@ func UploadHandler(c *gin.Context) {
 	}
 }
 
-func GetFileMetaHandler(write http.ResponseWriter, request *http.Request) {
-	err := request.ParseForm()
-	if err != nil {
-		panic(err)
-	}
-	fileHash := request.Form["filehash"][0]
-	fileMeta, err := meta.GetFileMetaDB(fileHash)
-	if err != nil {
-		write.WriteHeader(http.StatusInternalServerError)
-		panic(err)
-	}
-	marshal, err := json.Marshal(fileMeta)
-	if err != nil {
-		write.WriteHeader(http.StatusInternalServerError)
-		panic(err)
-	}
-	_, err = write.Write(marshal)
-	if err != nil {
-		panic(err)
-	}
-}
-
 func UserFileQueryHandler(c *gin.Context) {
 	type QueryFileMeta struct {
 		Username string `json:"username"`
@@ -95,41 +71,6 @@ func UserFileQueryHandler(c *gin.Context) {
 	}
 }
 
-func FileMetaUpdateHandler(write http.ResponseWriter, request *http.Request) {
-	err := request.ParseForm()
-	if err != nil {
-		panic(err)
-	}
-	opType := request.Form.Get("op")
-	fileSha1 := request.Form.Get("filehash")
-	newFileName := request.Form.Get("filename")
-
-	if opType != "0" {
-		write.WriteHeader(http.StatusForbidden)
-		return
-	}
-
-	if request.Method != "POST" {
-		write.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-	fileMeta := meta.GetFileMeta(fileSha1)
-	fileMeta.FileName = newFileName
-	meta.UpdateFileMetaDB(fileMeta)
-
-	marshal, err := json.Marshal(fileMeta)
-	if err != nil {
-		write.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	write.WriteHeader(http.StatusOK)
-	_, err = write.Write(marshal)
-	if err != nil {
-		write.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-}
-
 type DeleteFileRequest struct {
 	Filehash string `json:"filehash"`
 }
@@ -148,49 +89,4 @@ func FileDeleteHandler(c *gin.Context) {
 		return
 	}
 	response.Success(c, "删除成功", nil)
-}
-
-func TryFastUploadHandler(write http.ResponseWriter, request *http.Request) {
-	err := request.ParseForm()
-	if err != nil {
-		fmt.Println(err)
-		write.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	username := request.Form.Get("username")
-	fileHash := request.Form.Get("fileHash")
-	fileName := request.Form.Get("fileName")
-	fileSize, _ := strconv.Atoi(request.Form.Get("fileSize"))
-	fileMeta, err := db.OnGetFileMeta(fileHash)
-	if err != nil {
-		write.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	if fileMeta == nil {
-		resp := util.RespMsg{
-			Code: -1,
-			Msg:  "妙传失败，请使用普通上传接口",
-			Data: nil,
-		}
-		_, err = write.Write(resp.JSONBytes())
-		return
-	}
-	finished := db.OnUserFileUploadFinished(username, fileHash, fileName, int64(fileSize))
-	if finished {
-		resp := util.RespMsg{
-			Code: 0,
-			Msg:  "妙传成功",
-			Data: nil,
-		}
-		_, err = write.Write(resp.JSONBytes())
-		return
-	} else {
-		resp := util.RespMsg{
-			Code: -2,
-			Msg:  "妙传失败",
-			Data: nil,
-		}
-		_, err = write.Write(resp.JSONBytes())
-		return
-	}
 }
