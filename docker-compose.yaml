@@ -1,0 +1,23 @@
+version: '3'
+services:
+  mysql:
+    build:
+      context: ./db
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234567
+    container_name: filestore_db
+    ports:
+      - "3307:3306"
+    tty: true
+  app:
+    build:
+      context: ./
+    volumes:
+      - ".:/app"
+    container_name: filestore
+    ports:
+      - "8080:8080"
+    tty: true
+    depends_on:
+      - mysql
+
